@@ -1,98 +1,240 @@
-import * as Device from 'expo-device';
-import { Platform, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import AntDesign from "@expo/vector-icons/AntDesign";
+import { useState } from "react";
+import { Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-import { AnimatedIcon } from '@/components/animated-icon';
-import { HintRow } from '@/components/hint-row';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { WebBadge } from '@/components/web-badge';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
+type FeatureName =
+  | "global"
+  | "lock"
+  | "eye-invisible"
+  | "scan"
+  | "edit"
+  | "clock-circle"
+  | "export"
+  | "close-circle"
+  | "delete";
 
-function getDevMenuHint() {
-  if (Platform.OS === 'web') {
-    return <ThemedText type="small">use browser devtools</ThemedText>;
-  }
-  if (Device.isDevice) {
-    return (
-      <ThemedText type="small">
-        shake device or press <ThemedText type="code">m</ThemedText> in terminal
-      </ThemedText>
-    );
-  }
-  const shortcut = Platform.OS === 'android' ? 'cmd+m (or ctrl+m)' : 'cmd+d';
+type FeatureItem = {
+  name: FeatureName;
+  title: string;
+  description: string;
+};
+
+const FEATURES_STEP1: FeatureItem[] = [
+  {
+    name: "global",
+    title: "Works Completely Offline",
+    description: "No internet needed — your documents never leave your phone",
+  },
+  {
+    name: "lock",
+    title: "Locked Behind Your Fingerprint or PIN",
+    description: "Only your biometrics can unlock your vault — nothing else",
+  },
+  {
+    name: "eye-invisible",
+    title: "We Never See or Track Your Data",
+    description:
+      "No analytics, no accounts, no one but you can access your vault",
+  },
+];
+
+const FEATURES_STEP2: FeatureItem[] = [
+  {
+    name: "scan",
+    title: "Scan or Upload Instantly",
+    description: "Snap a photo or pick a file — no scanner needed",
+  },
+  {
+    name: "edit",
+    title: "You Decide What It Is",
+    description:
+      "Passport, gym membership, insurance policy — type anything, nothing is locked to a preset list",
+  },
+  {
+    name: "clock-circle",
+    title: "Get Reminded Before It Expires",
+    description: "Set a reminder once, and Vault tells you before it lapses",
+  },
+];
+
+const FEATURES_STEP3: FeatureItem[] = [
+  {
+    name: "export",
+    title: "Export Anytime",
+    description: "Save any document back out as a file whenever you need it",
+  },
+  {
+    name: "close-circle",
+    title: "No Account, No Login",
+    description: "Nothing here is tied to your name, email, or phone number",
+  },
+  {
+    name: "delete",
+    title: "Delete for Good, On Your Terms",
+    description:
+      "Items go to Trash first, then get erased permanently when you're ready",
+  },
+];
+
+function FeatureList({ features }: { features: readonly FeatureItem[] }) {
   return (
-    <ThemedText type="small">
-      press <ThemedText type="code">{shortcut}</ThemedText>
-    </ThemedText>
+    <View>
+      {features.map((feature, index) => (
+        <View
+          key={index}
+          className="mt-6 flex-row items-center gap-4 rounded-lg bg-white p-2 shadow-md"
+        >
+          <View className="h-10 w-10 items-center justify-center rounded-full">
+            <AntDesign name={feature.name} size={20} color="#3730A3" />
+          </View>
+
+          <View className="flex-1">
+            <Text className="text-base font-semibold text-slate-900">
+              {feature.title}
+            </Text>
+
+            <Text className="mt-1 text-sm leading-6 text-slate-600">
+              {feature.description}
+            </Text>
+          </View>
+        </View>
+      ))}
+    </View>
   );
 }
 
-export default function HomeScreen() {
+export default function App() {
+  const [step, setStep] = useState<number>(0);
+
+  const totalSteps = 3;
+
+  const handleNext = () => {
+    if (step < totalSteps - 1) {
+      setStep((prev) => prev + 1);
+    } else {
+      console.log("Get Started");
+    }
+  };
+
+  const handleBack = () => {
+    if (step > 0) {
+      setStep((prev) => prev - 1);
+    }
+  };
+
   return (
-    <ThemedView style={styles.container}>
-      <SafeAreaView style={styles.safeArea}>
-        <ThemedView style={styles.heroSection}>
-          <AnimatedIcon />
-          <ThemedText type="title" style={styles.title}>
-            Welcome to&nbsp;Expo
-          </ThemedText>
-        </ThemedView>
-
-        <ThemedText type="code" style={styles.code}>
-          get started
-        </ThemedText>
-
-        <ThemedView type="backgroundElement" style={styles.stepContainer}>
-          <HintRow
-            title="Try editing"
-            hint={<ThemedText type="code">src/app/index.tsx</ThemedText>}
+    <SafeAreaView className="h-full bg-[#FBF8FF]">
+      {/* Header */}
+      <View className="flex-row justify-between">
+        <View className="flex-row items-center gap-3 p-6">
+          <Image
+            source={require("../../assets/images/icon.png")}
+            className="h-10 w-10"
+            resizeMode="contain"
           />
-          <HintRow title="Dev tools" hint={getDevMenuHint()} />
-          <HintRow
-            title="Fresh start"
-            hint={<ThemedText type="code">npm run reset-project</ThemedText>}
-          />
-        </ThemedView>
+          <Text className="text-lg font-bold">Vault</Text>
+        </View>
 
-        {Platform.OS === 'web' && <WebBadge />}
-      </SafeAreaView>
-    </ThemedView>
+        <View className="flex-row items-center gap-2 px-4 pb-2">
+          <Text className="text-sm font-medium text-slate-600">
+            0{step + 1} / 03
+          </Text>
+
+          <View className="flex-row items-center gap-2">
+            {Array.from({ length: totalSteps }).map((_, index) => (
+              <View
+                key={index}
+                className={[
+                  "h-2.5 w-2.5 rounded-full",
+                  index === step ? "bg-[#3730A3]" : "bg-[#C8C4D5]",
+                ].join(" ")}
+              />
+            ))}
+          </View>
+        </View>
+      </View>
+
+      {/* Content */}
+      <ScrollView
+        className="px-6 pt-4"
+        contentContainerStyle={{ paddingBottom: 120 }}
+      >
+        {/* STEP 1 */}
+        {step === 0 && (
+          <>
+            <View>
+              <Text className="text-2xl font-bold text-slate-900">
+                Your Documents Never Touch the Cloud
+              </Text>
+
+              <Text className="mt-3 text-base leading-6 text-slate-600">
+                Vault works fully offline, with no servers and no tracking. Your
+                vault only unlocks with your fingerprint or PIN.
+              </Text>
+            </View>
+
+            <FeatureList features={FEATURES_STEP1} />
+          </>
+        )}
+
+        {/* STEP 2 */}
+        {step === 1 && (
+          <>
+            <View>
+              <Text className="text-2xl font-bold text-slate-900">
+                Add Anything, In Seconds
+              </Text>
+
+              <Text className="mt-3 text-base leading-6 text-slate-600">
+                Scan a photo or pick a file — you decide what it is. No forced
+                categories, no setup.
+              </Text>
+            </View>
+
+            <FeatureList features={FEATURES_STEP2} />
+          </>
+        )}
+
+        {/* STEP 3 */}
+        {step === 2 && (
+          <>
+            <View>
+              <Text className="text-2xl font-bold text-slate-900">
+                Your Data Stays Yours
+              </Text>
+
+              <Text className="mt-3 text-base leading-6 text-slate-600">
+                No account, no cloud, no one else involved. Just you and your
+                vault.
+              </Text>
+            </View>
+
+            <FeatureList features={FEATURES_STEP3} />
+          </>
+        )}
+      </ScrollView>
+
+      {/* Bottom buttons */}
+      <View className="absolute bottom-0 left-0 right-0 flex-row gap-3 bg-[#FBF8FF] px-6 pb-6 pt-3 mb-4">
+        {step > 0 && (
+          <TouchableOpacity
+            onPress={handleBack}
+            className="h-14 flex-1 items-center justify-center rounded-xl border border-[#3730A3]"
+          >
+            <Text className="font-semibold text-[#3730A3]">Back</Text>
+          </TouchableOpacity>
+        )}
+
+        <TouchableOpacity
+          onPress={handleNext}
+          className="h-14 flex-1 items-center justify-center rounded-xl bg-[#3730A3]"
+        >
+          <Text className="font-semibold text-white">
+            {step === totalSteps - 1 ? "Get Started" : "Continue"}
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    flexDirection: 'row',
-  },
-  safeArea: {
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    alignItems: 'center',
-    gap: Spacing.three,
-    paddingBottom: BottomTabInset + Spacing.three,
-    maxWidth: MaxContentWidth,
-  },
-  heroSection: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    gap: Spacing.four,
-  },
-  title: {
-    textAlign: 'center',
-  },
-  code: {
-    textTransform: 'uppercase',
-  },
-  stepContainer: {
-    gap: Spacing.three,
-    alignSelf: 'stretch',
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.four,
-    borderRadius: Spacing.four,
-  },
-});
