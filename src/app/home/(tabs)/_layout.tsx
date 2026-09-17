@@ -9,8 +9,8 @@ const INACTIVE = "#222222";
 const ACTIVE_BACKGROUND = "#F1F1F1";
 const SCREEN_BACKGROUND = "#FBF8FF";
 
-const TAB_BAR_HEIGHT = 76;
-const TAB_ITEM_HEIGHT = 60;
+const TAB_BAR_HEIGHT = 60;
+const TAB_ITEM_HEIGHT = 48;
 
 function TabIcon({
   name,
@@ -23,7 +23,7 @@ function TabIcon({
 }) {
   return (
     <View style={[styles.tabItem, focused && styles.tabItemActive]}>
-      <Ionicons name={name} size={24} color={focused ? ACTIVE : INACTIVE} />
+      <Ionicons name={name} size={20} color={focused ? ACTIVE : INACTIVE} />
 
       <Text
         style={[styles.label, focused && styles.labelActive]}
@@ -71,13 +71,13 @@ const styles = StyleSheet.create({
   /*
    * Actual tab/pill.
    *
-   * 60px high inside a 76px outer wrapper.
+   * 48px high inside a 60px outer wrapper.
    *
    * This gives:
    *
-   * 8px top
-   * 60px pill
-   * 8px bottom
+   * 6px top
+   * 48px pill
+   * 6px bottom
    */
   tabItem: {
     width: "100%",
@@ -105,10 +105,10 @@ const styles = StyleSheet.create({
   },
 
   label: {
-    marginTop: 1,
+    marginTop: 2,
 
     fontSize: 10,
-    lineHeight: 17,
+    lineHeight: 12,
 
     fontWeight: "400",
 
@@ -193,14 +193,14 @@ export default function HomeLayout() {
           right: 60,
           bottom: 30,
 
-          height: 76,
+          height: TAB_BAR_HEIGHT,
           width: "90%",
           marginHorizontal: "5%",
 
           paddingHorizontal: 12,
-          paddingVertical: 8,
+          paddingVertical: 6,
 
-          borderRadius: 38,
+          borderRadius: TAB_BAR_HEIGHT / 2,
 
           borderTopWidth: 0,
           borderWidth: 0,

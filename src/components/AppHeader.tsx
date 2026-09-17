@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { Image, Pressable, StyleSheet, Text, View } from "react-native";
+import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function AppHeader() {
@@ -15,16 +15,14 @@ export default function AppHeader() {
           />
           <Text style={styles.title}>Vault</Text>
         </View>
-        <Pressable
+        <TouchableOpacity
           accessibilityRole="button"
+          activeOpacity={0.7}
           onPress={() => router.push("/home/settings")}
-          style={({ pressed }) => [
-            styles.settingsBtn,
-            pressed && styles.settingsBtnPressed,
-          ]}
+          style={styles.settingsBtn}
         >
           <Ionicons name="settings-outline" size={20} color="#3730A3" />
-        </Pressable>
+        </TouchableOpacity>
       </View>
     </SafeAreaView>
   );
