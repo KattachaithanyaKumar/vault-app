@@ -1,7 +1,20 @@
 import AntDesign from "@expo/vector-icons/AntDesign";
-import { useState } from "react";
-import { Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { useEffect, useState } from "react";
+import {
+  ActivityIndicator,
+  Image,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { router } from "expo-router";
+import * as LocalAuthentication from "expo-local-authentication";
+import * as SecureStore from "expo-secure-store";
+import { PinInput } from "../components/PinInput";
+import { useToast } from "../components/Toast";
+import { useBiometric } from "../hooks/useBiometric";
 
 type FeatureName =
   | "global"
@@ -106,14 +119,37 @@ function FeatureList({ features }: { features: readonly FeatureItem[] }) {
 
 export default function App() {
   const [step, setStep] = useState<number>(0);
+  const [isReady, setIsReady] = useState(false);
+  const { biometricType, isAvailable: biometricsAvailable } = useBiometric();
 
-  const totalSteps = 3;
+  const { showToast } = useToast();
+
+  const totalSteps = 4;
+
+  const completeOnboarding = async () => {
+    await SecureStore.setItemAsync("onboarding_complete", "true");
+    showToast("Onboarding complete — welcome!");
+    router.replace("/home");
+  };
+
+  useEffect(() => {
+    (async () => {
+      const onboarded = await SecureStore.getItemAsync("onboarding_complete");
+
+      if (onboarded) {
+        router.replace("/unlock");
+        return;
+      }
+
+      setIsReady(true);
+    })();
+  }, []);
 
   const handleNext = () => {
     if (step < totalSteps - 1) {
       setStep((prev) => prev + 1);
     } else {
-      console.log("Get Started");
+      completeOnboarding();
     }
   };
 
@@ -123,9 +159,17 @@ export default function App() {
     }
   };
 
+  const isSecurityStep = step === totalSteps - 1;
+
   return (
     <SafeAreaView className="h-full bg-[#FBF8FF]">
-      {/* Header */}
+      {!isReady ? (
+        <View className="flex-1 items-center justify-center">
+          <ActivityIndicator size="small" color="#3730A3" />
+        </View>
+      ) : (
+        <>
+          {/* Header */}
       <View className="flex-row justify-between">
         <View className="flex-row items-center gap-3 p-6">
           <Image
@@ -138,7 +182,7 @@ export default function App() {
 
         <View className="flex-row items-center gap-2 px-4 pb-2">
           <Text className="text-sm font-medium text-slate-600">
-            0{step + 1} / 03
+            0{step + 1} / 0{totalSteps}
           </Text>
 
           <View className="flex-row items-center gap-2">
@@ -156,85 +200,119 @@ export default function App() {
       </View>
 
       {/* Content */}
-      <ScrollView
-        className="px-6 pt-4"
-        contentContainerStyle={{ paddingBottom: 120 }}
-      >
-        {/* STEP 1 */}
-        {step === 0 && (
-          <>
-            <View>
-              <Text className="text-2xl font-bold text-slate-900">
-                Your Documents Never Touch the Cloud
-              </Text>
+      {isSecurityStep ? (
+        <View className="flex-1 px-6 pt-4">
+          <View>
+            <Text className="text-2xl font-bold text-slate-900">
+              Secure Your Vault
+            </Text>
 
-              <Text className="mt-3 text-base leading-6 text-slate-600">
-                Vault works fully offline, with no servers and no tracking. Your
-                vault only unlocks with your fingerprint or PIN.
-              </Text>
-            </View>
+            <Text className="mt-3 text-base leading-6 text-slate-600">
+              {biometricsAvailable
+                ? "Choose how you want to unlock your vault — fingerprint, face, or a PIN."
+                : "Set a PIN to keep your vault locked and your documents safe."}
+            </Text>
+          </View>
 
-            <FeatureList features={FEATURES_STEP1} />
-          </>
-        )}
-
-        {/* STEP 2 */}
-        {step === 1 && (
-          <>
-            <View>
-              <Text className="text-2xl font-bold text-slate-900">
-                Add Anything, In Seconds
-              </Text>
-
-              <Text className="mt-3 text-base leading-6 text-slate-600">
-                Scan a photo or pick a file — you decide what it is. No forced
-                categories, no setup.
+          {biometricsAvailable === null ? (
+            <View className="mt-10 items-center">
+              <ActivityIndicator size="small" color="#3730A3" />
+              <Text className="mt-3 text-sm text-slate-500">
+                Checking device capabilities…
               </Text>
             </View>
-
-            <FeatureList features={FEATURES_STEP2} />
-          </>
-        )}
-
-        {/* STEP 3 */}
-        {step === 2 && (
-          <>
-            <View>
-              <Text className="text-2xl font-bold text-slate-900">
-                Your Data Stays Yours
-              </Text>
-
-              <Text className="mt-3 text-base leading-6 text-slate-600">
-                No account, no cloud, no one else involved. Just you and your
-                vault.
-              </Text>
-            </View>
-
-            <FeatureList features={FEATURES_STEP3} />
-          </>
-        )}
-      </ScrollView>
-
-      {/* Bottom buttons */}
-      <View className="absolute bottom-0 left-0 right-0 flex-row gap-3 bg-[#FBF8FF] px-6 pb-6 pt-3 mb-4">
-        {step > 0 && (
-          <TouchableOpacity
-            onPress={handleBack}
-            className="h-14 flex-1 items-center justify-center rounded-xl border border-[#3730A3]"
-          >
-            <Text className="font-semibold text-[#3730A3]">Back</Text>
-          </TouchableOpacity>
-        )}
-
-        <TouchableOpacity
-          onPress={handleNext}
-          className="h-14 flex-1 items-center justify-center rounded-xl bg-[#3730A3]"
+          ) : (
+            <PinInput
+              biometricType={biometricType}
+              onComplete={completeOnboarding}
+            />
+          )}
+        </View>
+      ) : (
+        <ScrollView
+          className="px-6 pt-4"
+          contentContainerStyle={{ paddingBottom: 120 }}
         >
-          <Text className="font-semibold text-white">
-            {step === totalSteps - 1 ? "Get Started" : "Continue"}
-          </Text>
-        </TouchableOpacity>
-      </View>
+          {/* STEP 1 */}
+          {step === 0 && (
+            <>
+              <View>
+                <Text className="text-2xl font-bold text-slate-900">
+                  Your Documents Never Touch the Cloud
+                </Text>
+
+                <Text className="mt-3 text-base leading-6 text-slate-600">
+                  Vault works fully offline, with no servers and no tracking.
+                  Your vault only unlocks with your fingerprint or PIN.
+                </Text>
+              </View>
+
+              <FeatureList features={FEATURES_STEP1} />
+            </>
+          )}
+
+          {/* STEP 2 */}
+          {step === 1 && (
+            <>
+              <View>
+                <Text className="text-2xl font-bold text-slate-900">
+                  Add Anything, In Seconds
+                </Text>
+
+                <Text className="mt-3 text-base leading-6 text-slate-600">
+                  Scan a photo or pick a file — you decide what it is. No forced
+                  categories, no setup.
+                </Text>
+              </View>
+
+              <FeatureList features={FEATURES_STEP2} />
+            </>
+          )}
+
+          {/* STEP 3 */}
+          {step === 2 && (
+            <>
+              <View>
+                <Text className="text-2xl font-bold text-slate-900">
+                  Your Data Stays Yours
+                </Text>
+
+                <Text className="mt-3 text-base leading-6 text-slate-600">
+                  No account, no cloud, no one else involved. Just you and your
+                  vault.
+                </Text>
+              </View>
+
+              <FeatureList features={FEATURES_STEP3} />
+            </>
+          )}
+        </ScrollView>
+      )}
+
+      {/* Bottom buttons — hidden on security step (handled by PinInput) */}
+      {!isSecurityStep && (
+        <View className="absolute bottom-0 left-0 right-0 flex-row gap-3 bg-[#FBF8FF] px-6 pb-6 pt-3 mb-4">
+          {step > 0 && (
+            <TouchableOpacity
+              onPress={handleBack}
+              className="h-14 flex-1 items-center justify-center rounded-xl border border-[#3730A3]"
+            >
+              <Text className="font-semibold text-[#3730A3]">Back</Text>
+            </TouchableOpacity>
+          )}
+
+          <TouchableOpacity
+            onPress={handleNext}
+            className="h-14 flex-1 items-center justify-center rounded-xl bg-[#3730A3]"
+          >
+            <Text className="font-semibold text-white">
+              {step === totalSteps - 2 ? "Get Started" : "Continue"}
+            </Text>
+          </TouchableOpacity>
+          </View>
+        )}
+        </>
+      )}
     </SafeAreaView>
   );
 }
