@@ -5,7 +5,12 @@ import "../../global.css";
 export default function RootLayout() {
   return (
     <ToastProvider>
-      <Stack screenOptions={{ headerShown: false }} />
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          contentStyle: { backgroundColor: "#FBF8FF" },
+        }}
+      />
     </ToastProvider>
   );
 }

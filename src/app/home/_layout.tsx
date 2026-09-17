@@ -1,64 +1,26 @@
-import { Ionicons } from "@expo/vector-icons";
-import { Tabs } from "expo-router";
-
-function TabIcon({
-  name,
-  focused,
-}: {
-  name: keyof typeof Ionicons.glyphMap;
-  focused: boolean;
-}) {
-  return (
-    <Ionicons
-      name={name}
-      size={24}
-      color={focused ? "#3730A3" : "#8E8E93"}
-    />
-  );
-}
+import { Stack } from "expo-router";
 
 export default function HomeLayout() {
   return (
-    <Tabs
+    <Stack
+      initialRouteName="(tabs)"
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: "#3730A3",
-        tabBarInactiveTintColor: "#8E8E93",
-        tabBarStyle: {
-          backgroundColor: "#FFFFFF",
-          borderTopWidth: 1,
-          borderTopColor: "#EDEAEC",
-        },
-        tabBarLabelStyle: { fontSize: 11, fontWeight: "500" },
+        contentStyle: { backgroundColor: "#FBF8FF" },
       }}
     >
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: "Vault",
-          tabBarIcon: ({ focused }) => (
-            <TabIcon name={focused ? "layers" : "layers-outline"} focused={focused} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="add"
-        options={{
-          title: "Add",
-          tabBarIcon: ({ focused }) => (
-            <TabIcon name={focused ? "add-circle" : "add-circle-outline"} focused={focused} />
-          ),
-        }}
-      />
-      <Tabs.Screen
+      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      <Stack.Screen
         name="settings"
         options={{
+          headerShown: true,
+          headerShadowVisible: false,
+          headerStyle: { backgroundColor: "#FBF8FF" },
+          headerTintColor: "#3730A3",
+          headerTitleStyle: { fontWeight: "700" },
           title: "Settings",
-          tabBarIcon: ({ focused }) => (
-            <TabIcon name={focused ? "settings" : "settings-outline"} focused={focused} />
-          ),
         }}
       />
-    </Tabs>
+    </Stack>
   );
 }
